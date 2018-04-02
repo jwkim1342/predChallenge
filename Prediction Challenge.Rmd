@@ -1,0 +1,117 @@
+---
+title: "Prediction Challenge"
+output: html_notebook
+---
+
+A supermarket is offering a new line of organic products.The supermarket's management wants to determine which customers are likely to purchase these products.
+
+The supermarket has a customer loyalty program. As an initial buyer incentive plan, the supermarket provided coupons for the organic products to all of the loyalty program participants and collected data that includes whether these customers purchased any of the organic products.
+
+The ORGANICS data set contains 13 variables and over 22,000 observations. The variables in the data set are  shown below with the appropriate roles and levels:
+
+```{r}
+rm(list=ls())
+setwd("/Users/jpferrer95/Google Drive/Offline/Spring 2018/BIS 348/Data")
+rdata = read.csv("organics.csv")
+str(rdata)
+```
+
+In order to focus just on the data we have, and without making any wild assumptions, we have decided to eliminate all entries with missing (NA or Null) values. By doing so we avoid pitfalls in our analysis.
+
+```{r}
+rdata = rdata[complete.cases(rdata),]
+str(rdata)
+```
+
+After eliminating the empty cells, we can notice the number of entries decreased from 22223 observations to 18904 observations.
+
+*Data Cleaning and Preping*
+This part of the process is important because we are trying to decide which categorical variables to be taken into account in our predictive model. We gotta create dummy variables for the following variables: Clusters, genders, regions, tv regions and promo class
+
+*Dummy Creation*
+```{r}
+options(scipen=999)
+
+# Cluster Dummies 
+rdata$isClusterA = ifelse(rdata$DemClusterGroup == 'A', 1, 0)
+rdata$isClusterB = ifelse(rdata$DemClusterGroup == 'B', 1, 0)
+rdata$isClusterC = ifelse(rdata$DemClusterGroup == 'C', 1, 0)
+rdata$isClusterD = ifelse(rdata$DemClusterGroup == 'D', 1, 0)
+rdata$isClusterE = ifelse(rdata$DemClusterGroup == 'E', 1, 0)
+rdata$isClusterE = ifelse(rdata$DemClusterGroup == 'F', 1, 0)
+levels(rdata$DemClusterGroup)
+
+# Gender Dummies 
+rdata$isMale= ifelse(rdata$DemGender == 'M', 1, 0)
+rdata$isFemale = ifelse(rdata$DemGender == 'F', 1, 0)
+levels(rdata$DemGender)
+
+# Region Dummies
+rdata$isMidland = ifelse(rdata$DemReg == 'Midlands', 1, 0)
+rdata$isNorth = ifelse(rdata$DemReg == 'North', 1, 0)
+rdata$isScottish = ifelse(rdata$DemReg == 'Scottish', 1, 0)
+rdata$isSouthEast = ifelse(rdata$DemReg == 'South East', 1, 0)
+levels(rdata$DemReg)
+
+# TV Region Dummmies
+rdata$isBorder = ifelse(rdata$DemTVReg == 'Border', 1, 0)
+rdata$isCScotland = ifelse(rdata$DemTVReg == 'C Scotland', 1, 0)
+rdata$isEast = ifelse(rdata$DemTVReg == 'East', 1, 0)
+rdata$isLondon = ifelse(rdata$DemTVReg == 'London', 1, 0)
+rdata$isMidlands = ifelse(rdata$DemTVReg == 'Midlands', 1, 0)
+rdata$isNEast = ifelse(rdata$DemTVReg == 'N East', 1, 0)
+rdata$isNScot = ifelse(rdata$DemTVReg == 'N Scot', 1, 0)
+rdata$isNWest = ifelse(rdata$DemTVReg == 'N West', 1, 0)
+rdata$isSSEast = ifelse(rdata$DemTVReg == 'S & S East', 1, 0)
+rdata$isSWest= ifelse(rdata$DemTVReg == 'S West', 1, 0)
+rdata$isUlster = ifelse(rdata$DemTVReg == 'Ulster', 1, 0)
+rdata$isWalesWest = ifelse(rdata$DemTVReg == 'Wales & West', 1, 0)
+levels(rdata$DemTVReg)
+
+# Promotion Class Dummies
+rdata$isGold = ifelse(rdata$PromClass == 'Gold', 1, 0)
+rdata$isPlatinum = ifelse(rdata$PromClass == 'Platinum', 1, 0)
+rdata$isSilver = ifelse(rdata$PromClass == 'Silver', 1, 0)
+levels(rdata$PromClass)
+```
+
+The *base case*: U Cluster, Unknown gender, South West region, Yorkshire TV region, Tin promotion class
+
+```{r}
+cdata = rdata[,-c(1,5,6,7,8,9,13)]
+
+set.seed(123)
+ti = sample(nrow(cdata), floor(nrow(cdata)*0.6))
+train.df = cdata[ti,]
+valid.df = cdata[-ti,]
+
+```
+
+Instructions:
+1. Although two target variables are listed, please use the binary variable TargetBuy only.
+2. Use any data processing and predictive modeling techniques you have learned from the
+class.
+3. Partition data by 60% training and 40% validation data.
+4. Evaluate multiple models and determine the best model that has the highest accuracy in
+identifying true positives.
+5. Use your best model to predict the test dataset.
+
+6. Summit the best model to me by the midnight on Sunday (before the last week of class)
+and you can’t change it anymore.
+
+7. Submit summary slides by the Monday class during the last week of class.
+
+8. Present your project, your thought process and your model performance for the test data
+in class, and discuss what you have learned through the project.
+
+*Run* = *Cmd+Shift+Enter*
+*Insert Chunk* = *Cmd+Option+I*
+*Preview* = *Cmd+Shift+K*
+
+*CLASS NOTES*
+*LIFT CHARTS*
+The lift chart is basically used in order to see how many cases must be used (customers contacted) using our predictive model and see the benefit in prediction we can have. The lift chart inherently includes the random predictive model which means, if all the cases, or all the people are contacted we will find all the positive cases, but is this efficient. If we can just focus on a number of people, a lift chart is valuable because it allows you to see the which cut off of people should the company go for, without incurring on uneccesary costs or no valuable increase in predictability. Data need to be sorted accordingly to their probability of success, which allows us to focus on the highly predicted customers in our model. 
+
+*Gain Table*
+The gains table can show you the depth of the file which constitutes for the percentage of data sample being predicted. The cummulative pct of total response shows the percentage of positive (1) entries that will be explained by the percentage of data being sampled. 
+
