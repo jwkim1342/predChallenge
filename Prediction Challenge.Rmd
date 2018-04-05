@@ -38,7 +38,7 @@ rdata$isClusterB = ifelse(rdata$DemClusterGroup == 'B', 1, 0)
 rdata$isClusterC = ifelse(rdata$DemClusterGroup == 'C', 1, 0)
 rdata$isClusterD = ifelse(rdata$DemClusterGroup == 'D', 1, 0)
 rdata$isClusterE = ifelse(rdata$DemClusterGroup == 'E', 1, 0)
-rdata$isClusterE = ifelse(rdata$DemClusterGroup == 'F', 1, 0)
+rdata$isClusterF = ifelse(rdata$DemClusterGroup == 'F', 1, 0)
 levels(rdata$DemClusterGroup)
 
 # Gender Dummies 
@@ -80,29 +80,67 @@ The *base case*: U Cluster, Unknown gender, South West region, Yorkshire TV regi
 ```{r}
 cdata = rdata[,-c(1,5,6,7,8,9,13)]
 
+# Partitioning the Data
 set.seed(123)
 ti = sample(nrow(cdata), floor(nrow(cdata)*0.6))
 train.df = cdata[ti,]
 valid.df = cdata[-ti,]
+head(train.df)
+```
+
+*Logistic Regression*
+```{r}
+# install.packages("forecast")
+library(forecast)
+logReg = glm(TargetBuy~.,data = train.df, family = 'binomial')
+pred.logReg = predict(logReg, newdata = valid.df, type = 'response')
+
+pred = ifelse(pred.logReg > 0.5, 1, 0)
+
+
+
+pred.df = data.frame(actual = valid.df$Competitive., prediction = pred, probability = p_prob)
+pred.df[order(-p_prob),]
+confusionMatrix(pred, valid.df$Competitive)
+
+# C #
+n.log.reg = glm(Competitive.~.-ClosePrice, data = train.df, family = 'binomial')
+
+p2_prob = predict(n.log.reg, newdata = valid.df, type = 'response')
+pred2 = ifelse(p2_prob > 0.5, 1, 0)
+pred2.df = data.frame(actual = valid.df$Competitive., prediction = pred2, probability = p2_prob)
+pred2.df[order(-p2_prob),]
+confusionMatrix(pred2, valid.df$Competitive.)
+
+
+```
+*Logistic Regression (Reduced Variables)*
+```{r}
+# Reduced amount of variables taken into account
+step.logReg = step(logReg, direction = 'both')
+```
+
+*Neural Network*
+```{r}
 
 ```
 
+*Classificatin Tree*
+```{r}
+
+```
+
+
+
 Instructions:
-1. Although two target variables are listed, please use the binary variable TargetBuy only.
-2. Use any data processing and predictive modeling techniques you have learned from the
-class.
-3. Partition data by 60% training and 40% validation data.
-4. Evaluate multiple models and determine the best model that has the highest accuracy in
-identifying true positives.
+4. Evaluate multiple models and determine the best model that has the highest accuracy in identifying true positives.
 5. Use your best model to predict the test dataset.
 
-6. Summit the best model to me by the midnight on Sunday (before the last week of class)
-and you can’t change it anymore.
+6. Summit the best model to me by the midnight on Sunday (before the last week of class) and you can’t change it anymore.
 
 7. Submit summary slides by the Monday class during the last week of class.
 
-8. Present your project, your thought process and your model performance for the test data
-in class, and discuss what you have learned through the project.
+8. Present your project, your thought process and your model performance for the test data in class, and discuss what you have learned through the project.
 
 *Run* = *Cmd+Shift+Enter*
 *Insert Chunk* = *Cmd+Option+I*
