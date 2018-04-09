@@ -88,39 +88,67 @@ valid.df = cdata[-ti,]
 head(train.df)
 ```
 
+
 *Logistic Regression*
 ```{r}
 # install.packages("forecast")
+# install.packages("caret")
+
+# Base Case #
 library(forecast)
+library(caret)
 logReg = glm(TargetBuy~.,data = train.df, family = 'binomial')
-pred.logReg = predict(logReg, newdata = valid.df, type = 'response')
+logReg.pred = predict(logReg, newdata = valid.df, type = 'response')
+pred = ifelse(logReg.pred > 0.5, 1, 0)
 
-pred = ifelse(pred.logReg > 0.5, 1, 0)
+pred.df = data.frame(Actual = valid.df$TargetBuy, Prediction = pred,
+                     Probability = logReg.pred )
 
-
-
-pred.df = data.frame(actual = valid.df$Competitive., prediction = pred, probability = p_prob)
-pred.df[order(-p_prob),]
-confusionMatrix(pred, valid.df$Competitive)
-
-# C #
-n.log.reg = glm(Competitive.~.-ClosePrice, data = train.df, family = 'binomial')
-
-p2_prob = predict(n.log.reg, newdata = valid.df, type = 'response')
-pred2 = ifelse(p2_prob > 0.5, 1, 0)
-pred2.df = data.frame(actual = valid.df$Competitive., prediction = pred2, probability = p2_prob)
-pred2.df[order(-p2_prob),]
-confusionMatrix(pred2, valid.df$Competitive.)
-
-
+#pred.df[order(-logReg.pred),]
+confusionMatrix(pred, valid.df$TargetBuy)
 ```
+
+
+```{r}
+# Choose Cutoff #
+cmatrix0.1 = confusionMatrix(ifelse(logReg.pred > 0.1, 1, 0), valid.df$TargetBuy)$overall[1]
+cmatrix0.2 = confusionMatrix(ifelse(logReg.pred > 0.2, 1, 0), valid.df$TargetBuy)$overall[1]
+cmatrix0.3 = confusionMatrix(ifelse(logReg.pred > 0.3, 1, 0), valid.df$TargetBuy)$overall[1]
+cmatrix0.4 = confusionMatrix(ifelse(logReg.pred > 0.4, 1, 0), valid.df$TargetBuy)$overall[1]
+cmatrix0.5 = confusionMatrix(ifelse(logReg.pred > 0.5, 1, 0), valid.df$TargetBuy)$overall[1]
+cmatrix0.6 = confusionMatrix(ifelse(logReg.pred > 0.6, 1, 0), valid.df$TargetBuy)$overall[1]
+cmatrix0.7 = confusionMatrix(ifelse(logReg.pred > 0.7, 1, 0), valid.df$TargetBuy)$overall[1]
+cmatrix0.8 = confusionMatrix(ifelse(logReg.pred > 0.8, 1, 0), valid.df$TargetBuy)$overall[1]
+cmatrix0.9 = confusionMatrix(ifelse(logReg.pred > 0.9, 1, 0), valid.df$TargetBuy)$overall[1]
+
+cutoff = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
+cmtraix.all = c(cmatrix0.1, cmatrix0.2, cmatrix0.3, cmatrix0.4, cmatrix0.5, cmatrix0.6,
+                 cmatrix0.7, cmatrix0.8, cmatrix0.9)
+
+plot(cmtraix.all ~ cutoff,
+     xlab="Cutoff", ylab="Accuracy", main="", type="l")
+```
+
+
 *Logistic Regression (Reduced Variables)*
 ```{r}
 # Reduced amount of variables taken into account
-step.logReg = step(logReg, direction = 'both')
+# step.logReg = step(logReg, direction = 'both')
+step.logReg.pred = predict(step.logReg, newdata = valid.df, type = 'response')
+
+step.pred = ifelse(step.logReg.pred > 0.5, 1, 0)
+
+step.pred.df = data.frame(Actual = valid.df$TargetBuy, Prediction = step.pred,
+                          Probability = step.logReg.pred )
+
+#pred.df[order(-logReg.pred),]
+confusionMatrix(step.pred, valid.df$TargetBuy)
+
 ```
 
 *Neural Network*
+*Use Stepwise first on LogReg and then use those variables to create the neural network*
+*Exhaustive Search*
 ```{r}
 
 ```
