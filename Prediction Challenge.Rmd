@@ -2,28 +2,22 @@
 title: "Prediction Challenge"
 output: html_notebook
 ---
-
+##### Objective ######
 A supermarket is offering a new line of organic products.The supermarket's management wants to determine which customers are likely to purchase these products.
 
 The supermarket has a customer loyalty program. As an initial buyer incentive plan, the supermarket provided coupons for the organic products to all of the loyalty program participants and collected data that includes whether these customers purchased any of the organic products.
 
 The ORGANICS data set contains 13 variables and over 22,000 observations. The variables in the data set are  shown below with the appropriate roles and levels:
 
+##### Data Preprocessing ######
 ```{r}
 rm(list=ls())
 setwd("/Users/jpferrer95/Google Drive/Offline/Spring 2018/BIS 348/Data")
 rdata = read.csv("organics.csv")
-str(rdata)
-```
-
-In order to focus just on the data we have, and without making any wild assumptions, we have decided to eliminate all entries with missing (NA or Null) values. By doing so we avoid pitfalls in our analysis.
-
-```{r}
 rdata = rdata[complete.cases(rdata),]
-str(rdata)
 ```
 
-After eliminating the empty cells, we can notice the number of entries decreased from 22223 observations to 18904 observations.
+In order to focus just on the data we have, and without making any wild assumptions, we have decided to eliminate all entries with missing (NA or Null) values. By doing so we avoid pitfalls in our analysis.After eliminating the empty cells, we can notice the number of entries decreased from 22223 observations to 18904 observations.
 
 *Data Cleaning and Preping*
 This part of the process is important because we are trying to decide which categorical variables to be taken into account in our predictive model. We gotta create dummy variables for the following variables: Clusters, genders, regions, tv regions and promo class
@@ -39,19 +33,16 @@ rdata$isClusterC = ifelse(rdata$DemClusterGroup == 'C', 1, 0)
 rdata$isClusterD = ifelse(rdata$DemClusterGroup == 'D', 1, 0)
 rdata$isClusterE = ifelse(rdata$DemClusterGroup == 'E', 1, 0)
 rdata$isClusterF = ifelse(rdata$DemClusterGroup == 'F', 1, 0)
-levels(rdata$DemClusterGroup)
 
 # Gender Dummies 
 rdata$isMale= ifelse(rdata$DemGender == 'M', 1, 0)
 rdata$isFemale = ifelse(rdata$DemGender == 'F', 1, 0)
-levels(rdata$DemGender)
 
 # Region Dummies
 rdata$isMidland = ifelse(rdata$DemReg == 'Midlands', 1, 0)
 rdata$isNorth = ifelse(rdata$DemReg == 'North', 1, 0)
 rdata$isScottish = ifelse(rdata$DemReg == 'Scottish', 1, 0)
 rdata$isSouthEast = ifelse(rdata$DemReg == 'South East', 1, 0)
-levels(rdata$DemReg)
 
 # TV Region Dummmies
 rdata$isBorder = ifelse(rdata$DemTVReg == 'Border', 1, 0)
@@ -66,37 +57,32 @@ rdata$isSSEast = ifelse(rdata$DemTVReg == 'S & S East', 1, 0)
 rdata$isSWest= ifelse(rdata$DemTVReg == 'S West', 1, 0)
 rdata$isUlster = ifelse(rdata$DemTVReg == 'Ulster', 1, 0)
 rdata$isWalesWest = ifelse(rdata$DemTVReg == 'Wales & West', 1, 0)
-levels(rdata$DemTVReg)
 
 # Promotion Class Dummies
 rdata$isGold = ifelse(rdata$PromClass == 'Gold', 1, 0)
 rdata$isPlatinum = ifelse(rdata$PromClass == 'Platinum', 1, 0)
 rdata$isSilver = ifelse(rdata$PromClass == 'Silver', 1, 0)
-levels(rdata$PromClass)
 ```
 
 The *base case*: U Cluster, Unknown gender, South West region, Yorkshire TV region, Tin promotion class
 
+*Data Partitioning*
 ```{r}
 cdata = rdata[,-c(1,5,6,7,8,9,13)]
-
-# Partitioning the Data
 set.seed(123)
 ti = sample(nrow(cdata), floor(nrow(cdata)*0.6))
 train.df = cdata[ti,]
 valid.df = cdata[-ti,]
-head(train.df)
 ```
 
-
-*Logistic Regression*
+##### Logistic Regression Model ######
+*Setting Up Model*
 ```{r}
 # install.packages("forecast")
 # install.packages("caret")
-
-# Base Case #
 library(forecast)
 library(caret)
+
 logReg = glm(TargetBuy~.,data = train.df, family = 'binomial')
 logReg.pred = predict(logReg, newdata = valid.df, type = 'response')
 pred = ifelse(logReg.pred > 0.5, 1, 0)
@@ -108,29 +94,21 @@ pred.df = data.frame(Actual = valid.df$TargetBuy, Prediction = pred,
 confusionMatrix(pred, valid.df$TargetBuy)
 ```
 
-
+*Model Assessment*
 ```{r}
 # Choose Cutoff #
-cmatrix0.1 = confusionMatrix(ifelse(logReg.pred > 0.1, 1, 0), valid.df$TargetBuy)$overall[1]
-cmatrix0.2 = confusionMatrix(ifelse(logReg.pred > 0.2, 1, 0), valid.df$TargetBuy)$overall[1]
-cmatrix0.3 = confusionMatrix(ifelse(logReg.pred > 0.3, 1, 0), valid.df$TargetBuy)$overall[1]
-cmatrix0.4 = confusionMatrix(ifelse(logReg.pred > 0.4, 1, 0), valid.df$TargetBuy)$overall[1]
-cmatrix0.5 = confusionMatrix(ifelse(logReg.pred > 0.5, 1, 0), valid.df$TargetBuy)$overall[1]
-cmatrix0.6 = confusionMatrix(ifelse(logReg.pred > 0.6, 1, 0), valid.df$TargetBuy)$overall[1]
-cmatrix0.7 = confusionMatrix(ifelse(logReg.pred > 0.7, 1, 0), valid.df$TargetBuy)$overall[1]
-cmatrix0.8 = confusionMatrix(ifelse(logReg.pred > 0.8, 1, 0), valid.df$TargetBuy)$overall[1]
-cmatrix0.9 = confusionMatrix(ifelse(logReg.pred > 0.9, 1, 0), valid.df$TargetBuy)$overall[1]
+accT = c()
+for(cutoff in seq(0, 1, 0.01)){
+    cm = confusionMatrix(ifelse(logReg.pred > cutoff, 1, 0), valid.df$TargetBuy)
+    accT = c(accT, cm$overall[1])
+}
 
-cutoff = c(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9)
-cmtraix.all = c(cmatrix0.1, cmatrix0.2, cmatrix0.3, cmatrix0.4, cmatrix0.5, cmatrix0.6,
-                 cmatrix0.7, cmatrix0.8, cmatrix0.9)
-
-plot(cmtraix.all ~ cutoff,
-     xlab="Cutoff", ylab="Accuracy", main="", type="l")
+plot(accT ~ seq(0, 1, 0.01), xlab = "Cutoff Value", ylab = "", type = "l", ylim = c(0,1))
+lines(1-accT ~ seq(0,1,0.01), type = "l", lty = 2)
+legend("bottomright", c("accuracy", "overall error"), lty = c(1,2), merge = F)
 ```
 
-
-*Logistic Regression (Reduced Variables)*
+*Reduce number of Predictors*
 ```{r}
 # Reduced amount of variables taken into account
 # step.logReg = step(logReg, direction = 'both')
@@ -145,30 +123,46 @@ step.pred.df = data.frame(Actual = valid.df$TargetBuy, Prediction = step.pred,
 confusionMatrix(step.pred, valid.df$TargetBuy)
 
 ```
+##### Neural Network Model ######
+```{r}
+library(neuralnet)
+library(forecast)
 
-*Neural Network*
+# Normalize the data
+nor = preProcess(cdata, method="range")
+nn.data = predict(nor, cdata) 
+str(nn.data)
+
+train.df.nn = nn.data[ti,]
+valid.df.nn = nn.data[-ti,]
+```
+
 *Use Stepwise first on LogReg and then use those variables to create the neural network*
 *Exhaustive Search*
 ```{r}
 
 ```
 
-*Classificatin Tree*
+##### Classification Tree Model ######
 ```{r}
+# install.packages(c("rpart", "rpart.plot"))
+library(rpart)
+library(rpart.plot)
 
+default.ct = rpart(TargetBuy~., data = train.df, method = "class")
+prp(default.ct, type = 1, extra = 1, under = TRUE, 
+    split.font = 1, varlen = -10, 
+    box.col = ifelse(default.ct$frame$var =="<leaf>",     'gray','white'))
+
+default.pred = predict(default.ct, valid.df, type="class")
+
+## Generate confusion matrices for training and validation
+library(caret)
+confusionMatrix(default.pred, valid.df$TargetBuy)
 ```
 
+##### Conclusion ######
 
-
-Instructions:
-4. Evaluate multiple models and determine the best model that has the highest accuracy in identifying true positives.
-5. Use your best model to predict the test dataset.
-
-6. Summit the best model to me by the midnight on Sunday (before the last week of class) and you can’t change it anymore.
-
-7. Submit summary slides by the Monday class during the last week of class.
-
-8. Present your project, your thought process and your model performance for the test data in class, and discuss what you have learned through the project.
 
 *Run* = *Cmd+Shift+Enter*
 *Insert Chunk* = *Cmd+Option+I*
