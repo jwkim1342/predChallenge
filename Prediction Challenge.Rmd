@@ -2,14 +2,16 @@
 title: "Prediction Challenge"
 output: html_notebook
 ---
-##### Objective ######
+
+# Objective #
 A supermarket is offering a new line of organic products.The supermarket's management wants to determine which customers are likely to purchase these products.
 
 The supermarket has a customer loyalty program. As an initial buyer incentive plan, the supermarket provided coupons for the organic products to all of the loyalty program participants and collected data that includes whether these customers purchased any of the organic products.
 
 The ORGANICS data set contains 13 variables and over 22,000 observations. The variables in the data set are  shown below with the appropriate roles and levels:
 
-##### Data Preprocessing ######
+# Data Preprocessing #
+## Data Extraction ##
 ```{r}
 rm(list=ls())
 setwd("/Users/jpferrer95/Google Drive/Offline/Spring 2018/BIS 348/Data")
@@ -19,10 +21,9 @@ rdata = rdata[complete.cases(rdata),]
 
 In order to focus just on the data we have, and without making any wild assumptions, we have decided to eliminate all entries with missing (NA or Null) values. By doing so we avoid pitfalls in our analysis.After eliminating the empty cells, we can notice the number of entries decreased from 22223 observations to 18904 observations.
 
-*Data Cleaning and Preping*
+## Data Cleaning / Dummies ##
 This part of the process is important because we are trying to decide which categorical variables to be taken into account in our predictive model. We gotta create dummy variables for the following variables: Clusters, genders, regions, tv regions and promo class
 
-*Dummy Creation*
 ```{r}
 options(scipen=999)
 
@@ -66,7 +67,7 @@ rdata$isSilver = ifelse(rdata$PromClass == 'Silver', 1, 0)
 
 The *base case*: U Cluster, Unknown gender, South West region, Yorkshire TV region, Tin promotion class
 
-*Data Partitioning*
+## Data Partitioning ##
 ```{r}
 cdata = rdata[,-c(1,5,6,7,8,9,13)]
 set.seed(123)
@@ -76,7 +77,8 @@ valid.df = cdata[-ti,]
 ```
 
 ##### Logistic Regression Model ######
-*Setting Up Model*
+# Logistic Regression Model #
+## Setting Up Model ##
 ```{r}
 # install.packages("forecast")
 # install.packages("caret")
@@ -94,7 +96,7 @@ pred.df = data.frame(Actual = valid.df$TargetBuy, Prediction = pred,
 confusionMatrix(pred, valid.df$TargetBuy)
 ```
 
-*Model Assessment*
+## Model Assessment ##
 ```{r}
 # Choose Cutoff #
 accT = c()
@@ -123,7 +125,8 @@ step.pred.df = data.frame(Actual = valid.df$TargetBuy, Prediction = step.pred,
 confusionMatrix(step.pred, valid.df$TargetBuy)
 
 ```
-##### Neural Network Model ######
+# Neural Network Model #
+## Extra: Data Normalization ##
 ```{r}
 library(neuralnet)
 library(forecast)
@@ -137,13 +140,15 @@ train.df.nn = nn.data[ti,]
 valid.df.nn = nn.data[-ti,]
 ```
 
+## Extra: Data Normalization ##
 *Use Stepwise first on LogReg and then use those variables to create the neural network*
 *Exhaustive Search*
 ```{r}
 
 ```
 
-##### Classification Tree Model ######
+# Classification Tree Model #
+## Model Creation ##
 ```{r}
 # install.packages(c("rpart", "rpart.plot"))
 library(rpart)
@@ -161,7 +166,7 @@ library(caret)
 confusionMatrix(default.pred, valid.df$TargetBuy)
 ```
 
-##### Conclusion ######
+# Conclusion #
 
 
 *Run* = *Cmd+Shift+Enter*
