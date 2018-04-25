@@ -124,6 +124,45 @@ step.pred.df = data.frame(Actual = valid.df$TargetBuy, Prediction = step.pred,
 #pred.df[order(-logReg.pred),]
 confusionMatrix(step.pred, valid.df$TargetBuy)
 
+accuracy(step.logReg.pred,valid.df$TargetBuy)
+accuracy(logReg.pred,valid.df$TargetBuy)
+summary(step.logReg.pred)
+summary(logReg.pred)
+
+# lift chart 
+library(gains)
+gain.full <- gains(valid.df$TargetBuy,step.logReg.pred, groups=10)
+gain.full
+data.frame("depth" =  gain.full["depth"], "obs" = gain.full["obs"], "cume.obs" = gain.full["cume.obs"], 
+           "mean.resp" = gain.full["mean.resp"], "cume.mean.resp" = gain.full["cume.mean.resp"], "cume.pct.of.total" = gain.full["cume.pct.of.total"], 
+           "lift" = gain.full["lift"], "cume.lift" = gain.full["cume.lift"], "mean.prediction" = gain.full["mean.prediction"])
+gain.full.origin <- gains(valid.df$TargetBuy,logReg.pred, groups=10)
+
+# plot lift chart
+plot(c(0, gain.full$cume.pct.of.total*sum(valid.df$TargetBuy))~c(0,gain.full$cume.obs),
+     xlab="# cases", ylab="Cumulative", main="", type="l")
+lines(c(0,sum(valid.df$TargetBuy))~c(0, dim(valid.df)[1]), lty=2)
+lines(c(0, gain.full.origin$cume.pct.of.total*sum(valid.df$TargetBuy))~c(0,gain.full$cume.obs),col = "red")
+
+#compute deciles and plot decile-wise chart
+heights <- gain.full$mean.resp/mean(valid.df$TargetBuy)
+midpoints <- barplot(heights, names.arg = gain.full$depth, ylim = c(0,3), 
+                     xlab = "Percentile", ylab = "Mean Response", main = "Decile-wise lift chart")
+
+# ROC curve
+library(pROC)
+r <- roc(valid.df$TargetBuy, step.logReg.pred)
+plot.roc(r)
+#compute area under the curve
+auc(r)
+
+# ROC curve - Original Model
+library(pROC)
+r2 <- roc(valid.df$TargetBuy, logReg.pred)
+plot.roc(r2)
+#compute area under the curve
+auc(r2)
+
 ```
 # Neural Network Model #
 ## Extra: Data Normalization ##
