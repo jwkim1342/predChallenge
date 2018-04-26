@@ -166,6 +166,54 @@ auc(r2)
 #pred.df[order(-logReg.pred),]
 confusionMatrix(step.pred, valid.df$TargetBuy)
 
+rdata2 <- read.csv("C:\\Users\\jwkim\\Desktop\\Spring 2017\\BIS 448\\scoreorganics.csv", header = TRUE)
+
+# Cluster Dummies 
+rdata2$isClusterA = ifelse(rdata2$DemClusterGroup == 'A', 1, 0)
+rdata2$isClusterB = ifelse(rdata2$DemClusterGroup == 'B', 1, 0)
+rdata2$isClusterC = ifelse(rdata2$DemClusterGroup == 'C', 1, 0)
+rdata2$isClusterD = ifelse(rdata2$DemClusterGroup == 'D', 1, 0)
+rdata2$isClusterE = ifelse(rdata2$DemClusterGroup == 'E', 1, 0)
+rdata2$isClusterF = ifelse(rdata2$DemClusterGroup == 'F', 1, 0)
+
+# Gender Dummies 
+rdata2$isMale= ifelse(rdata2$DemGender == 'M', 1, 0)
+rdata2$isFemale = ifelse(rdata2$DemGender == 'F', 1, 0)
+
+# Region Dummies
+rdata2$isMidland = ifelse(rdata2$DemReg == 'Midlands', 1, 0)
+rdata2$isNorth = ifelse(rdata2$DemReg == 'North', 1, 0)
+rdata2$isScottish = ifelse(rdata2$DemReg == 'Scottish', 1, 0)
+rdata2$isSouthEast = ifelse(rdata2$DemReg == 'South East', 1, 0)
+
+# TV Region Dummmies
+rdata2$isBorder = ifelse(rdata2$DemTVReg == 'Border', 1, 0)
+rdata2$isCScotland = ifelse(rdata2$DemTVReg == 'C Scotland', 1, 0)
+rdata2$isEast = ifelse(rdata2$DemTVReg == 'East', 1, 0)
+rdata2$isLondon = ifelse(rdata2$DemTVReg == 'London', 1, 0)
+rdata2$isMidlands = ifelse(rdata2$DemTVReg == 'Midlands', 1, 0)
+rdata2$isNEast = ifelse(rdata2$DemTVReg == 'N East', 1, 0)
+rdata2$isNScot = ifelse(rdata2$DemTVReg == 'N Scot', 1, 0)
+rdata2$isNWest = ifelse(rdata2$DemTVReg == 'N West', 1, 0)
+rdata2$isSSEast = ifelse(rdata2$DemTVReg == 'S & S East', 1, 0)
+rdata2$isSWest= ifelse(rdata2$DemTVReg == 'S West', 1, 0)
+rdata2$isUlster = ifelse(rdata2$DemTVReg == 'Ulster', 1, 0)
+rdata2$isWalesWest = ifelse(rdata2$DemTVReg == 'Wales & West', 1, 0)
+
+# Promotion Class Dummies
+rdata2$isGold = ifelse(rdata2$PromClass == 'Gold', 1, 0)
+rdata2$isPlatinum = ifelse(rdata2$PromClass == 'Platinum', 1, 0)
+rdata2$isSilver = ifelse(rdata2$PromClass == 'Silver', 1, 0)
+View(rdata2)
+
+## Got an error..trying to figure out
+logit.reg.score <- predict(step.logReg.pred, rdata2, type="response")
+logit.reg.score
+
+Classification <- data.frame("Probability" = logit.reg.score, 
+                             "Classifcation" = ifelse(logit.reg.score>0.5, 1, 0))
+
+
 
 ```
 # Neural Network Model #
